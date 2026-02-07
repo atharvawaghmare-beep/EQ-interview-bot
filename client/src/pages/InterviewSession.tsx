@@ -8,8 +8,22 @@ import { useEffect, useState } from "react";
 
 export default function InterviewSession() {
   const { roleId } = useParams();
-  const [_, setLocation] = useLocation();
-  const role = ROLES.find(r => r.id === roleId) || ROLES[0];
+  const [location, setLocation] = useLocation();
+  const queryParams = new URLSearchParams(location.split('?')[1]);
+  const customTopic = queryParams.get('topic');
+
+  const role = customTopic 
+    ? { 
+        id: 'custom', 
+        title: customTopic, 
+        questions: [
+          `Can you give me an overview of your experience with ${customTopic}?`,
+          `What are some of the biggest challenges you've faced when working with ${customTopic}?`,
+          `How do you stay up to date with the latest developments in ${customTopic}?`
+        ] 
+      }
+    : (ROLES.find(r => r.id === roleId) || ROLES[0]);
+
   const [timeLeft, setTimeLeft] = useState(60); // 60s per question timer sim
 
   // Simple Timer logic
