@@ -4,3 +4,9 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+.env
+.local/
+.venv/
+python-service/.venv/
+__pycache__/
+*.pyc

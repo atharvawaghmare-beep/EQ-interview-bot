@@ -11,9 +11,15 @@ import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
+const RESUME_SESSION_STORAGE_KEY = "resumeInterviewSession";
+
 export default function InterviewSetup() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [customTopic, setCustomTopic] = useState("");
+  const [resumeName, setResumeName] = useState("");
+  const [resumeQuestions, setResumeQuestions] = useState<
+    { id: string; question: string; category: string; difficulty: 'easy' | 'medium' | 'hard' }[]
+  >([]);
   const [_, setLocation] = useLocation();
 
   const [permissions, setPermissions] = useState({
@@ -33,9 +39,28 @@ export default function InterviewSetup() {
 
     if (customTopic.trim()) {
       setLocation(`/session/custom?${params.toString()}`);
+    } else if (resumeQuestions.length > 0) {
+      sessionStorage.setItem(
+        RESUME_SESSION_STORAGE_KEY,
+        JSON.stringify({
+          resumeName,
+          questions: resumeQuestions,
+        }),
+      );
+      setLocation(`/session/resume?${params.toString()}`);
     } else if (selectedRole) {
       setLocation(`/session/${selectedRole}?${params.toString()}`);
     }
+  };
+
+  const handleResumeUpload = (
+    fileName: string,
+    questions: { id: string; question: string; category: string; difficulty: 'easy' | 'medium' | 'hard' }[],
+  ) => {
+    setResumeName(fileName);
+    setResumeQuestions(questions);
+    setSelectedRole(null);
+    setCustomTopic("");
   };
 
   return (
@@ -49,7 +74,7 @@ export default function InterviewSetup() {
         <div className="space-y-8">
           <Tabs defaultValue="role" className="w-full">
             <div className="flex justify-center mb-8">
-              <TabsList className="grid w-full max-w-[600px] grid-cols-3 bg-secondary/50 p-1 rounded-full">
+              <TabsList className="grid w-full max-w-150 grid-cols-3 bg-secondary/50 p-1 rounded-full">
                 <TabsTrigger value="role" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white">Choose Role</TabsTrigger>
                 <TabsTrigger value="topic" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white">Custom Topic</TabsTrigger>
                 <TabsTrigger value="resume" className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white">Upload Resume</TabsTrigger>
@@ -112,7 +137,7 @@ export default function InterviewSetup() {
 
             <TabsContent value="resume" className="animate-in fade-in zoom-in-95 duration-300 outline-none">
               <Card className="p-8 bg-secondary/20 border-white/10">
-                <ResumeUpload onUpload={() => setSelectedRole("software-dev")} /> 
+                <ResumeUpload onUpload={handleResumeUpload} />
               </Card>
             </TabsContent>
           </Tabs>
@@ -171,12 +196,18 @@ export default function InterviewSetup() {
 
           <Button 
             size="lg" 
-            disabled={!selectedRole && !customTopic.trim()}
+            disabled={!selectedRole && !customTopic.trim() && resumeQuestions.length === 0}
             onClick={handleStart}
             className="w-full h-14 rounded-xl shadow-2xl text-lg font-bold transition-all hover:scale-[1.02] mt-8"
           >
             Start Interview <ArrowRight className="ml-2" />
           </Button>
+
+          {resumeQuestions.length > 0 && (
+            <p className="mt-3 text-xs text-muted-foreground text-center">
+              Resume ready: {resumeName} ({resumeQuestions.length} tailored questions)
+            </p>
+          )}
         </Card>
       </div>
     </div>

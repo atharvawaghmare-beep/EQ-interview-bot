@@ -1,4 +1,8 @@
+import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import { Pool } from "pg";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -12,8 +16,16 @@ declare module "http" {
   }
 }
 
+declare module "express-session" {
+  interface SessionData {
+    userId: string;
+    username: string;
+  }
+}
+
 app.use(
   express.json({
+    limit: "15mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
@@ -21,6 +33,32 @@ app.use(
 );
 
 app.use(express.urlencoded({ extended: false }));
+
+// Session configuration
+if (process.env.DATABASE_URL) {
+  const pgPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  const PgSession = connectPgSimple(session);
+
+  app.use(
+    session({
+      store: new PgSession({
+        pool: pgPool,
+        tableName: "session",
+      }),
+      secret: process.env.SESSION_SECRET || "your-secret-key-change-in-production",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
+      },
+    }),
+  );
+}
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -94,7 +132,6 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`);

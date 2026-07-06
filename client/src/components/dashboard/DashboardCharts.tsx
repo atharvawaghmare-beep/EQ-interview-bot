@@ -30,7 +30,7 @@ export function DashboardCharts() {
           <CardDescription>Mock Interview Scores & Confidence</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
+          <div className="h-75 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={MOCK_PERFORMANCE_DATA}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
@@ -65,7 +65,7 @@ export function DashboardCharts() {
           <CardDescription>Based on your last 5 sessions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
+          <div className="h-75 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="80%" data={SKILL_radar_DATA}>
                 <PolarGrid stroke="#ffffff20" />
